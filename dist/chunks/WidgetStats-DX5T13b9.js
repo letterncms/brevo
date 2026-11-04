@@ -6,7 +6,7 @@ function f() {
 	let e = i("brevo/stats", {}, { refetchInterval: 6e5 }), r = e.data, o = /* @__PURE__ */ u(a, {
 		size: "sm",
 		icon: "settings",
-		onClick: () => t("/settings/mail"),
+		onClick: () => t("/settings/email"),
 		children: n("Open Settings")
 	}), s = r?.state === "inactive" ? {
 		icon: "brevo",
@@ -34,7 +34,7 @@ function f() {
 	return /* @__PURE__ */ u(c, {
 		action: {
 			label: n("Settings"),
-			to: "/settings/mail"
+			to: "/settings/email"
 		},
 		query: e,
 		empty: s,
