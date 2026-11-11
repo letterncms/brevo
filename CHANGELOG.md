@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.6.0 (2026-11-11)
+
+### Added
+
+- `brevo/stats`, `brevo/lists` and `brevo/subscribe` say what they answer with (`output`), for agents, the API and the CLI.
+
+### Changed
+
+- **Confirm Addresses by Email** and the three fields that belong to it are one group, **Confirmation**, and the page to go to afterwards shows a path, `/thank-you`. The note under the Brevo key in Settings → Email is gone.
+
+### Fixed
+
+- In German, **Button Label** reads “Beschriftung der Schaltfläche”, as in Forms: with both plugins on, the admin showed one wording or the other.
+
 ## 0.5.0 (2026-11-11)
 
 ### Added
