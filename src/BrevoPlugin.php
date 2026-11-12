@@ -16,6 +16,7 @@ use Cms\Brevo\Http\SignupController;
 use Cms\Modules\Blocks\BlockRegistry;
 use Cms\Modules\Email\Transports;
 use Cms\Packages\Plugin;
+use Cms\Support\Yaml;
 use Cms\Support\Schema\Shape;
 use Throwable;
 
@@ -32,6 +33,18 @@ final class BrevoPlugin extends Plugin
                 ['handle' => 'brevo_api_key', 'type' => 'text', 'label' => 'Brevo API Key', 'secret' => true],
             ], static fn (array $settings) => new BrevoTransport((string) ($settings['brevo_api_key'] ?? '')));
         });
+    }
+
+    /** A default list chosen before 0.7 was saved as "#<id>": it is the id now, which the settings offer. */
+    public function upgrade(string $fromVersion): void
+    {
+        $file = site_path('config/brevo.yaml');
+        $stored = Yaml::read($file);
+
+        if (preg_match('/^#(\d+)$/', (string) ($stored['list'] ?? ''), $m) === 1) {
+            Yaml::write($file, array_replace($stored, ['list' => $m[1]]));
+            $this->cms()->settingsRegistry()->forget('brevo');
+        }
     }
 
     public function boot(): void
@@ -51,6 +64,11 @@ final class BrevoPlugin extends Plugin
         ]);
 
         $this->lists();
+
+        // What the Audit Log calls each change, once it has happened.
+        $this->cms()->hooks()->addFilter('audit.past', static fn (array $past): array => $past + [
+            'brevo/subscribe' => __('Subscribed to Brevo List'),
+        ]);
 
         $this->cms()->admin()->widget('brevo-stats', ['label' => 'Brevo', 'description' => __('Delivery, opens, clicks and bounces of the email Brevo sent this week.'), 'icon' => 'brevo', 'column' => 'main', 'order' => 65, 'permission' => 'settings.manage']);
         $this->adminModule();
@@ -79,11 +97,10 @@ final class BrevoPlugin extends Plugin
             ? array_diff_key($values, ['api_key' => true])
             : $values);
 
-        // The lists to choose from, in the settings and in the signup block. Each is "#<id>": options are merged
-        // by spreading, which would renumber keys that are numbers and leave the names as the values.
+        // The lists to choose from, in the settings and in the signup block: the id is the value, the name its label.
         $this->cms()->hooks()->addFilter('fields.options.brevo-lists', static function (array $options) use ($client) {
             foreach ($client()->lists()['lists'] as $list) {
-                $options['#'.$list['id']] = $list['name'];
+                $options[(int) $list['id']] = $list['name'];
             }
 
             return $options;
